@@ -1,6 +1,9 @@
 {
     "name": "campus-event-portal",
     "version": "1.0.0",
+    "engines": {
+        "node": ">=18"
+    },
     "description": "Academic Campus Event & Registration Portal",
     "type": "module",
     "scripts": {
