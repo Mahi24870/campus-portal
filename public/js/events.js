@@ -22,7 +22,12 @@ function createEventCardHTML(event, context = 'all') {
     }
   } else if (context === 'my-registrations') {
     const isUpcoming = new Date(event.event_date) > new Date() && event.status !== 'cancelled';
-    actionButton = isUpcoming ? `<button class="btn btn-danger" style="width:100%" data-action="cancel-reg" data-id="${event.id}">Cancel Registration</button>` : `<button class="btn btn-secondary" style="width:100%" disabled>${event.status}</button>`;
+    actionButton = `
+      <div style="display:flex; gap:0.5rem; flex-direction:column;">
+        <button class="btn btn-primary" style="width:100%" data-action="view-ticket" data-id="${event.id}">View Ticket</button>
+        ${isUpcoming ? `<button class="btn btn-danger" style="width:100%" data-action="cancel-reg" data-id="${event.id}">Cancel Registration</button>` : `<button class="btn btn-secondary" style="width:100%" disabled>${event.status}</button>`}
+      </div>
+    `;
   }
 
   return `
@@ -55,6 +60,7 @@ function handleEventGridClicks(e) {
   if (action === 'register') registerForEvent(id);
   if (action === 'cancel-reg') cancelRegistration(id);
   if (action === 'view-regs') viewRegistrants(id);
+  if (action === 'view-ticket') showTicket(id);
 }
 
 // Bind clicks statically once
@@ -96,7 +102,10 @@ window.loadEventsHome = async function () {
       html += `<div class="stat-card glass-card"><p>Your Registrations</p><h3>${r.registrations.length}</h3></div>`;
     } else {
       const created = events.filter(e => e.created_by === currentUser.id);
-      html += `<div class="stat-card glass-card"><p>Events Created You</p><h3>${created.length}</h3></div>`;
+      html += `<div class="stat-card glass-card"><p>Events Created By You</p><h3>${created.length}</h3></div>`;
+
+      // Analytics for Admin/Faculty
+      initAnalyticsChart(events.slice(0, 10)); // Show stats for last 10 events
     }
     statsGrid.innerHTML = html;
 
@@ -321,3 +330,156 @@ document.getElementById('createEventForm')?.addEventListener('submit', async (e)
     btn.textContent = 'Create Event';
   }
 });
+
+// ---------- QR TICKET LOGIC ---------- //
+let qrcodeInstance = null;
+async function showTicket(eventId) {
+  try {
+    const res = await apiCall('GET', '/api/registrations/my');
+    const reg = res.registrations.find(r => r.id === parseInt(eventId));
+    if (!reg) return;
+
+    document.getElementById('ticketEventTitle').textContent = reg.title;
+    document.getElementById('ticketUserInfo').textContent = `${currentUser.full_name} (${currentUser.department})`;
+    document.getElementById('ticketStatus').textContent = reg.attended ? 'Status: ATTENDED' : 'Status: NOT SCANNED';
+
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = '';
+
+    new QRCode(qrContainer, {
+      text: reg.ticket_token,
+      width: 200,
+      height: 200,
+      colorDark: "#0f172a",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    openModal('ticketModal');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ---------- SCANNER LOGIC ---------- //
+let html5QrCode = null;
+window.initScanner = function () {
+  const startBtn = document.getElementById('startScanBtn');
+  const stopBtn = document.getElementById('stopScanBtn');
+  const resultDiv = document.getElementById('scanResult');
+
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => { });
+  }
+
+  html5QrCode = new Html5Qrcode("reader");
+
+  startBtn.addEventListener('click', () => {
+    resultDiv.style.display = 'none';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+      .catch(err => {
+        showToast('Camera error: ' + err, 'error');
+        stopScanner();
+      });
+  });
+
+  stopBtn.addEventListener('click', stopScanner);
+};
+
+function stopScanner() {
+  const startBtn = document.getElementById('startScanBtn');
+  const stopBtn = document.getElementById('stopScanBtn');
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      startBtn.style.display = 'inline-block';
+      stopBtn.style.display = 'none';
+    }).catch(err => console.error(err));
+  }
+}
+
+async function onScanSuccess(decodedText) {
+  stopScanner();
+  const resultDiv = document.getElementById('scanResult');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Verifying ticket...</p>';
+  resultDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+
+  try {
+    const res = await apiCall('POST', `/api/registrations/verify/${decodedText}`);
+    if (res.success) {
+      resultDiv.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+      resultDiv.innerHTML = `
+                <h4 style="color: #4ade80;"><i class="fas fa-check-circle"></i> ${res.message}</h4>
+                <p style="margin-top:0.5rem;"><strong>${res.registrant.full_name}</strong></p>
+                <p style="font-size:0.8rem; opacity:0.8;">Event: ${res.registrant.event_title}</p>
+            `;
+      showToast('Check-in success!', 'success');
+    } else {
+      throw new Error(res.error);
+    }
+  } catch (err) {
+    resultDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+    resultDiv.innerHTML = `<h4 style="color: #f87171;"><i class="fas fa-times-circle"></i> ${err.message || 'Invalid Ticket'}</h4>`;
+    showToast('Verification failed', 'error');
+  }
+}
+
+// ---------- ANALYTICS LOGIC ---------- //
+let eventsChart = null;
+function initAnalyticsChart(events) {
+  const section = document.getElementById('analyticsSection');
+  if (!section) return;
+  section.style.display = 'block';
+
+  const ctx = document.getElementById('eventsChart').getContext('2d');
+  if (eventsChart) eventsChart.destroy();
+
+  const labels = events.map(e => e.title.length > 20 ? e.title.substring(0, 17) + '...' : e.title);
+  const data = events.map(e => e.registration_count);
+  const capacities = events.map(e => e.max_capacity);
+
+  eventsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Registrations',
+        data: data,
+        backgroundColor: 'rgba(0, 242, 254, 0.6)',
+        borderColor: '#00f2fe',
+        borderWidth: 1
+      }, {
+        label: 'Capacity',
+        data: capacities,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        type: 'line'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: { color: '#94a3b8' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8' }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#f8fafc', font: { family: "'Outfit', sans-serif" } }
+        }
+      }
+    }
+  });
+}

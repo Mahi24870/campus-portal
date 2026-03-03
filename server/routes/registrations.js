@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
 
@@ -29,15 +30,17 @@ router.post('/:eventId', requireAuth, async (req, res) => {
         }
 
         try {
-            await pool.query('INSERT INTO registrations (event_id, user_id, status) VALUES (?, ?, ?)', [eventId, userId, 'confirmed']);
-            res.json({ success: true });
+            const ticketToken = crypto.randomBytes(16).toString('hex');
+            await pool.query('INSERT INTO registrations (event_id, user_id, status, ticket_token) VALUES (?, ?, ?, ?)', [eventId, userId, 'confirmed', ticketToken]);
+            res.json({ success: true, ticketToken });
         } catch (insertErr) {
             if (insertErr.code === 'ER_DUP_ENTRY') {
                 // Find if it was cancelled, maybe they are re-registering
                 const [existing] = await pool.query('SELECT status FROM registrations WHERE event_id = ? AND user_id = ?', [eventId, userId]);
                 if (existing.length > 0 && existing[0].status === 'cancelled') {
-                    await pool.query('UPDATE registrations SET status = ?, registered_at = CURRENT_TIMESTAMP WHERE event_id = ? AND user_id = ?', ['confirmed', eventId, userId]);
-                    return res.json({ success: true, message: 'Re-registered successfully' });
+                    const ticketToken = crypto.randomBytes(16).toString('hex');
+                    await pool.query('UPDATE registrations SET status = ?, registered_at = CURRENT_TIMESTAMP, ticket_token = ?, attended = FALSE WHERE event_id = ? AND user_id = ?', ['confirmed', ticketToken, eventId, userId]);
+                    return res.json({ success: true, message: 'Re-registered successfully', ticketToken });
                 }
                 return res.status(400).json({ success: false, error: 'Already registered' });
             }
@@ -53,7 +56,7 @@ router.post('/:eventId', requireAuth, async (req, res) => {
 router.get('/my', requireAuth, async (req, res) => {
     try {
         const query = `
-      SELECT r.id as reg_id, r.status as reg_status, r.registered_at, e.* 
+      SELECT r.id as reg_id, r.status as reg_status, r.registered_at, r.ticket_token, r.attended, e.* 
       FROM registrations r
       JOIN events e ON r.event_id = e.id
       WHERE r.user_id = ? AND r.status != 'cancelled'
@@ -92,7 +95,7 @@ router.get('/event/:eventId', requireAuth, requireRole('admin', 'faculty'), asyn
         }
 
         const query = `
-      SELECT r.registered_at, u.full_name, u.email, u.department 
+      SELECT r.registered_at, r.attended, r.attended_at, u.full_name, u.email, u.department 
       FROM registrations r
       JOIN users u ON r.user_id = u.id
       WHERE r.event_id = ? AND r.status != 'cancelled'
@@ -100,6 +103,38 @@ router.get('/event/:eventId', requireAuth, requireRole('admin', 'faculty'), asyn
     `;
         const [registrants] = await pool.query(query, [eventId]);
         res.json({ success: true, registrants });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Verify/Scan Ticket (Admin/Faculty)
+router.post('/verify/:token', requireAuth, requireRole('admin', 'faculty'), async (req, res) => {
+    try {
+        const token = req.params.token;
+        const [registrations] = await pool.query(`
+            SELECT r.*, e.title as event_title, u.full_name, u.email 
+            FROM registrations r
+            JOIN events e ON r.event_id = e.id
+            JOIN users u ON r.user_id = u.id
+            WHERE r.ticket_token = ? AND r.status = 'confirmed'
+        `, [token]);
+
+        if (registrations.length === 0) {
+            return res.status(404).json({ success: false, error: 'Invalid or cancelled ticket' });
+        }
+
+        const reg = registrations[0];
+
+        if (reg.attended) {
+            return res.status(400).json({ success: false, error: 'Ticket already scanned', registrant: reg });
+        }
+
+        // Update attendance
+        await pool.query('UPDATE registrations SET attended = TRUE, attended_at = CURRENT_TIMESTAMP WHERE id = ?', [reg.id]);
+
+        res.json({ success: true, message: 'Check-in successful', registrant: reg });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: 'Server error' });

@@ -5,6 +5,10 @@ A full-stack web application designed for academic campus events, allowing stude
 ## Features
 - **User Authentication:** Registered accounts with Student, Faculty, and Admin roles.
 - **Event Management:** Faculty and Admins can create, edit, and delete events. They can also view attendee lists and export them as CSV.
+- **QR Tickets:** Students receive a unique QR code for every event they register for, enabling contactless check-ins.
+- **Attendance Scanner:** Built-in QR code scanner for Faculty/Admins to verify attendance in real-time.
+- **Analytics Dashboard:** Visual charts (via Chart.js) showing registration trends and event capacities.
+- **User Management:** Admins can manage user roles and accounts directly from the portal.
 - **Registrations:** Students and Faculty can browse events, see real-time capacity and registration statuses, and sign up with one click.
 - **Dashboard Hub:** A single-page application dashboard providing quick access to all relevant information depending on the logged-in role.
 - **Modern UI:** Glassmorphism aesthetics with dynamic responsiveness for mobile devices and clean, accessible form inputs.
@@ -59,4 +63,4 @@ Or register a new account on the login page!
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6+), FontAwesome
 - **Backend:** Node.js, Express.js
 - **Database:** MySQL
-- **Other:** `bcryptjs` (passwords), `multer` (file uploads), `express-session` (authentication)
+- **Other:** `bcryptjs` (passwords), `multer` (file uploads), `express-session` (authentication), `Chart.js` (analytics), `html5-qrcode` (scanning)

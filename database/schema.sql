@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS registrations (
   user_id INT NOT NULL,
   registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status ENUM('confirmed', 'cancelled', 'waitlisted') DEFAULT 'confirmed',
+  ticket_token VARCHAR(100) UNIQUE,
+  attended BOOLEAN DEFAULT FALSE,
+  attended_at TIMESTAMP NULL,
   UNIQUE KEY unique_registration (event_id, user_id),
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

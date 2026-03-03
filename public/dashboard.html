@@ -10,6 +10,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -42,6 +45,11 @@
                     <a href="#my-events" class="nav-link" data-section="my-events"><i class="fas fa-list"></i> My
                         Events</a>
                 </li>
+                <li class="nav-item" id="nav-scan-ticket" style="display:none;">
+                    <a href="#scan-ticket" class="nav-link" data-section="scan-ticket"><i class="fas fa-qrcode"></i>
+                        Scan
+                        Ticket</a>
+                </li>
                 <li class="nav-item" id="nav-manage-users" style="display:none;">
                     <a href="#manage-users" class="nav-link" data-section="manage-users"><i class="fas fa-users"></i>
                         Manage Users</a>
@@ -72,6 +80,13 @@
 
                 <div class="stats-grid" id="statsGrid">
                     <!-- Loaded dynamically based on role -->
+                </div>
+
+                <div id="analyticsSection" class="glass-card" style="display:none; margin-top: 2rem; padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Registration Analytics</h3>
+                    <div style="max-height: 400px; position: relative;">
+                        <canvas id="eventsChart"></canvas>
+                    </div>
                 </div>
 
                 <h3 style="margin-top: 2.5rem; margin-bottom: 1rem;">Upcoming Events</h3>
@@ -217,25 +232,39 @@
 
             <!-- Section: Manage Users -->
             <section id="section-manage-users" class="view-section">
-                <h2 style="margin-bottom: 1.5rem;">Manage Users</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Manage Users</h2>
+                </div>
                 <div class="glass-card table-responsive">
-                    <p style="color: var(--gray-500); margin-bottom: 1rem;">User management APIs disabled in
-                        boilerplate, this is just a UI placeholder.</p>
-                    <table>
+                    <table id="usersTable">
                         <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
-                                <th>Dept</th>
+                                <th>Department</th>
+                                <th>Joined At</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="4" style="text-align: center;">Coming soon</td>
-                            </tr>
+                        <tbody id="usersBody">
+                            <!-- Dynamically populated -->
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- Section: Scan Ticket -->
+            <section id="section-scan-ticket" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">Entrance Check-in</h2>
+                <div class="glass-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+                    <div id="reader" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;">
+                    </div>
+                    <div id="scanResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;">
+                    </div>
+                    <button class="btn btn-primary" id="startScanBtn" style="margin-top: 1rem;">Start Scanner</button>
+                    <button class="btn btn-secondary" id="stopScanBtn" style="margin-top: 1rem; display: none;">Stop
+                        Scanner</button>
                 </div>
             </section>
 
@@ -297,6 +326,23 @@
                         <!-- Dynamically populated -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content glass-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3 style="color: var(--teal);">Event Ticket</h3>
+                <button class="modal-close" onclick="closeModal('ticketModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="ticketEventTitle" style="margin-bottom: 1rem;">Event Name</h4>
+                <div id="qrcode"
+                    style="display: flex; justify-content: center; margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 12px;">
+                </div>
+                <p class="event-meta" id="ticketUserInfo" style="font-weight: bold;"></p>
+                <p class="event-meta" id="ticketStatus" style="margin-top: 0.5rem; color: var(--teal);"></p>
             </div>
         </div>
     </div>

@@ -8,6 +8,7 @@ import { attachUser } from './middleware/authMiddleware.js';
 import authRoutes from './routes/auth.js';
 import eventRoutes from './routes/events.js';
 import registrationRoutes from './routes/registrations.js';
+import userRoutes from './routes/users.js';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check for deployment monitoring
 app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));
