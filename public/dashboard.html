@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Portal - Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">CampusEvents</div>
+            </div>
+
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link active" data-section="home"><i class="fas fa-home"></i>
+                        Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#events" class="nav-link" data-section="events"><i class="fas fa-calendar-alt"></i> All
+                        Events</a>
+                </li>
+                <li class="nav-item" id="nav-my-registrations" style="display:none;">
+                    <a href="#my-registrations" class="nav-link" data-section="my-registrations"><i
+                            class="fas fa-ticket-alt"></i> My Registrations</a>
+                </li>
+                <li class="nav-item" id="nav-create-event" style="display:none;">
+                    <a href="#create-event" class="nav-link" data-section="create-event"><i
+                            class="fas fa-plus-circle"></i> Create Event</a>
+                </li>
+                <li class="nav-item" id="nav-my-events" style="display:none;">
+                    <a href="#my-events" class="nav-link" data-section="my-events"><i class="fas fa-list"></i> My
+                        Events</a>
+                </li>
+                <li class="nav-item" id="nav-manage-users" style="display:none;">
+                    <a href="#manage-users" class="nav-link" data-section="manage-users"><i class="fas fa-users"></i>
+                        Manage Users</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#profile" class="nav-link" data-section="profile"><i class="fas fa-user"></i> Profile</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar" id="sidebarAvatar">U</div>
+                    <div>
+                        <div style="font-weight: bold; font-size: 0.9rem;" id="sidebarName">User Name</div>
+                        <div style="font-size: 0.8rem; color: var(--teal);" id="sidebarRole">role</div>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn btn-secondary" style="padding: 0.5rem;"><i
+                        class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Section: Home -->
+            <section id="section-home" class="view-section active">
+                <h2 id="welcomeText" style="font-size: 2rem; margin-bottom: 0.5rem;">Good day!</h2>
+                <p class="event-meta" id="currentDateText"></p>
+
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Loaded dynamically based on role -->
+                </div>
+
+                <h3 style="margin-top: 2.5rem; margin-bottom: 1rem;">Upcoming Events</h3>
+                <div class="events-grid" id="upcomingEventsGrid">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Section: All Events -->
+            <section id="section-events" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">All Events</h2>
+                <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="filters-row">
+                        <input type="text" id="searchFilter" placeholder="Search events..." style="flex: 1;" />
+                        <select id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="academic">Academic</option>
+                            <option value="cultural">Cultural</option>
+                            <option value="sports">Sports</option>
+                            <option value="workshop">Workshop</option>
+                            <option value="seminar">Seminar</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="events-grid" id="allEventsGrid">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Section: Create Event -->
+            <section id="section-create-event" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">Create New Event</h2>
+                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+                    <form id="createEventForm">
+                        <h3 style="color: var(--teal); margin-bottom: 1rem;">1. Basic Info</h3>
+                        <div class="form-group">
+                            <input type="text" id="eventTitle" class="form-control" placeholder=" " required />
+                            <label class="form-label" for="eventTitle">Event Title</label>
+                        </div>
+                        <div class="form-group">
+                            <select id="eventCategory" class="form-control" required>
+                                <option value="" disabled selected></option>
+                                <option value="academic">Academic</option>
+                                <option value="cultural">Cultural</option>
+                                <option value="sports">Sports</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="seminar">Seminar</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <label class="form-label" for="eventCategory">Category</label>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="eventDesc" class="form-control" placeholder=" " rows="4" required
+                                style="resize: vertical;"></textarea>
+                            <label class="form-label" for="eventDesc">Description</label>
+                        </div>
+
+                        <h3 style="color: var(--teal); margin: 2rem 0 1rem;">2. Logistics</h3>
+                        <div class="form-group">
+                            <input type="text" id="eventVenue" class="form-control" placeholder=" " required />
+                            <label class="form-label" for="eventVenue">Venue</label>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <input type="date" id="eventDate" class="form-control" required
+                                    style="color-scheme: dark;" />
+                                <label class="form-label" for="eventDate"
+                                    style="top: -10px; font-size: 0.8rem; color: var(--teal);">Event Date</label>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <input type="time" id="eventTime" class="form-control" required
+                                    style="color-scheme: dark;" />
+                                <label class="form-label" for="eventTime"
+                                    style="top: -10px; font-size: 0.8rem; color: var(--teal);">Event Time</label>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <input type="date" id="eventDeadline" class="form-control" required
+                                    style="color-scheme: dark;" />
+                                <label class="form-label" for="eventDeadline"
+                                    style="top: -10px; font-size: 0.8rem; color: var(--teal);">Reg. Deadline</label>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <input type="number" id="eventCapacity" class="form-control" placeholder=" " required
+                                    min="1" />
+                                <label class="form-label" for="eventCapacity">Max Capacity</label>
+                            </div>
+                        </div>
+
+                        <h3 style="color: var(--teal); margin: 2rem 0 1rem;">3. Media</h3>
+                        <div class="form-group">
+                            <input type="file" id="eventBanner" class="form-control" accept="image/*"
+                                style="padding: 1rem 0;" />
+                            <label class="form-label" for="eventBanner"
+                                style="top: -10px; font-size: 0.8rem; color: var(--teal);">Banner Image (File)</label>
+                        </div>
+
+                        <div style="text-align: right; margin-top: 2rem;">
+                            <button type="submit" class="btn btn-primary">Create Event</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Section: My Events -->
+            <section id="section-my-events" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">Events I Created</h2>
+                <div class="glass-card table-responsive">
+                    <table id="myEventsTable">
+                        <thead>
+                            <tr>
+                                <th>Banner</th>
+                                <th>Title</th>
+                                <th>Date & Time</th>
+                                <th>Category</th>
+                                <th>Capacity</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myEventsBody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: My Registrations -->
+            <section id="section-my-registrations" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">My Registrations</h2>
+                <div class="events-grid" id="myRegistrationsGrid">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Section: Manage Users -->
+            <section id="section-manage-users" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">Manage Users</h2>
+                <div class="glass-card table-responsive">
+                    <p style="color: var(--gray-500); margin-bottom: 1rem;">User management APIs disabled in
+                        boilerplate, this is just a UI placeholder.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Dept</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" style="text-align: center;">Coming soon</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Profile -->
+            <section id="section-profile" class="view-section">
+                <h2 style="margin-bottom: 1.5rem;">My Profile</h2>
+                <div class="glass-card" style="max-width: 500px;">
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <input type="text" id="profileName" class="form-control" readonly />
+                            <label class="form-label" for="profileName"
+                                style="top: -10px; font-size: 0.8rem; color: var(--teal);">Full Name</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="profileEmail" class="form-control" readonly />
+                            <label class="form-label" for="profileEmail"
+                                style="top: -10px; font-size: 0.8rem; color: var(--teal);">Email (Read-only)</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="profileRole" class="form-control" readonly />
+                            <label class="form-label" for="profileRole"
+                                style="top: -10px; font-size: 0.8rem; color: var(--teal);">Role (Read-only)</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="profileDept" class="form-control" readonly />
+                            <label class="form-label" for="profileDept"
+                                style="top: -10px; font-size: 0.8rem; color: var(--teal);">Department</label>
+                        </div>
+                        <!-- More fields could be implemented -->
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Reusable Modal (e.g. for viewing Registrants) -->
+    <div class="modal-overlay" id="registrantsModal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3 style="color: var(--teal);">Event Registrants</h3>
+                <button class="modal-close" onclick="closeModal('registrantsModal')"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body table-responsive">
+                <div style="margin-bottom: 1rem; text-align: right;">
+                    <button class="btn btn-secondary" id="exportCsvBtn" style="padding: 0.5rem 1rem;"><i
+                            class="fas fa-download"></i> Export CSV</button>
+                </div>
+                <table id="registrantsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Registered At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrantsBody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/js/utils.js"></script>
+    <script src="/js/events.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Portal - Register</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="geo-art">
+        <div class="geo-shape shape-1"></div>
+        <div class="geo-shape shape-2"></div>
+        <div class="geo-shape shape-3"></div>
+        <div class="geo-shape shape-4"></div>
+    </div>
+
+    <div class="auth-card glass-card" style="position: relative; z-index: 10;">
+        <h1 class="auth-title" style="text-align: center;">Register</h1>
+        <p class="auth-subtitle" style="text-align: center;">Join the Campus Event Portal</p>
+
+        <form id="registerForm" novalidate>
+            <div class="form-group">
+                <input type="text" id="fullName" class="form-control" placeholder=" " required />
+                <label class="form-label" for="fullName">Full Name</label>
+                <span class="form-error" id="nameError"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="email" id="email" class="form-control" placeholder=" " required />
+                <label class="form-label" for="email">Email Address</label>
+                <span class="form-error" id="emailError"></span>
+            </div>
+
+            <div class="form-group">
+                <select id="role" class="form-control" required>
+                    <option value="" disabled selected></option>
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                </select>
+                <label class="form-label" for="role">Role</label>
+            </div>
+
+            <div class="form-group">
+                <select id="department" class="form-control" required>
+                    <option value="" disabled selected></option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Business">Business</option>
+                    <option value="Science">Science</option>
+                    <option value="Other">Other</option>
+                </select>
+                <label class="form-label" for="department">Department</label>
+            </div>
+
+            <div class="form-group">
+                <input type="password" id="password" class="form-control" placeholder=" " required minlength="6" />
+                <label class="form-label" for="password">Password</label>
+                <span class="form-error" id="passwordError"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="password" id="confirmPassword" class="form-control" placeholder=" " required />
+                <label class="form-label" for="confirmPassword">Confirm Password</label>
+                <span class="form-error" id="confirmPasswordError"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="/index.html"><i class="fas fa-arrow-left"></i> Back to Login</a>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+</body>
+
+</html>
