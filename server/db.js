@@ -2,7 +2,10 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const pool = mysql.createPool({
+const poolConfig = process.env.DATABASE_URL ? {
+  uri: process.env.DATABASE_URL,
+  multipleStatements: true
+} : {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
@@ -10,6 +13,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+};
+
+const pool = mysql.createPool(poolConfig);
 
 export default pool;

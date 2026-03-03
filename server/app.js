@@ -16,6 +16,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust proxy for secure cookies in production (e.g. Render/Heroku)
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -41,6 +44,9 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
+
+// Health check for deployment monitoring
+app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));
 
 // Fallback to index.html for SPA if needed (though we have multiple html files here)
 app.get('/', (req, res) => {
